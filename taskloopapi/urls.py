@@ -1,8 +1,20 @@
 from django.contrib import admin
 from rest_framework import permissions
+from rest_framework.authentication import TokenAuthentication
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from django.urls import path, re_path, include
+
+swagger_settings = {
+    'SECURITY_DEFINITIONS': {
+        'Token': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header',
+            'description': 'Use format: Token <your-token-here>'
+        }
+    }
+}
 
 # Swagger setup
 schema_view = get_schema_view(
@@ -18,8 +30,8 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/auth/', include('authapi.urls')),
-    path('api/sessions/', include('core.urls')),
+    path('auth/', include('authapi.urls')),
+    path('sessions/', include('core.urls')),
 
     # Swagger and ReDoc
     re_path(r'^swagger/$', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),

@@ -9,6 +9,6 @@ class SessionAdmin(admin.ModelAdmin):
 
 @admin.register(Task)
 class TaskAdmin(admin.ModelAdmin):
-    list_display = ('id', 'session', 'text', 'is_done', 'created_at', 'updated_at')
+    list_display = ('id', 'session', 'text', 'user', 'is_done', 'created_at', 'updated_at')
     list_filter = ('is_done', 'created_at', 'updated_at')
     search_fields = ('id', 'text', 'session__id')

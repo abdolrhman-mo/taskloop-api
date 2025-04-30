@@ -27,10 +27,29 @@ register_request_body = openapi.Schema(
     },
 )
 
+# Define token parameter
+token_param = openapi.Parameter(
+    'Authorization',
+    openapi.IN_HEADER,
+    description="Token auth: Token <your_token>",
+    type=openapi.TYPE_STRING
+)
+
 class RegisterView(APIView):
     permission_classes = [AllowAny]
 
-    @swagger_auto_schema(request_body=register_request_body)
+    @swagger_auto_schema(
+        request_body=register_request_body,
+        responses={
+            201: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'message': openapi.Schema(type=openapi.TYPE_STRING),
+                    'token': openapi.Schema(type=openapi.TYPE_STRING),
+                }
+            )
+        }
+    )
     def post(self, request):
         username = request.data.get('username')
         password = request.data.get('password')
@@ -53,7 +72,19 @@ class RegisterView(APIView):
 class LoginView(APIView):
     permission_classes = [AllowAny]
 
-    @swagger_auto_schema(request_body=login_request_body)
+    @swagger_auto_schema(
+        request_body=login_request_body,
+        responses={
+            200: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'message': openapi.Schema(type=openapi.TYPE_STRING),
+                    'token': openapi.Schema(type=openapi.TYPE_STRING),
+                }
+            ),
+            401: 'Invalid credentials'
+        }
+    )
     def post(self, request):
         username = request.data.get('username')
         password = request.data.get('password')

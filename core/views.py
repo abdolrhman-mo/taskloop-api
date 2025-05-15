@@ -205,3 +205,92 @@ class ListUsersView(APIView):
         users = User.objects.exclude(id=request.user.id)
         serializer = UserSerializer(users, many=True)
         return Response(serializer.data)
+
+class SessionManagementView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    @swagger_auto_schema(
+        manual_parameters=[token_param],
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'name': openapi.Schema(type=openapi.TYPE_STRING, description='New session name'),
+            }
+        ),
+        responses={200: SessionSerializer, 403: 'Forbidden', 404: 'Not Found'}
+    )
+    def put(self, request, id):
+        """
+        Update session details.
+        Requires authentication and session ownership.
+        """
+        session = get_object_or_404(Session, id=id)
+        
+        # Check if user is part of the session
+        if request.user != session.user1 and request.user != session.user2:
+            return Response({'error': 'Not authorized'}, status=403)
+
+        # Update session name if provided
+        name = request.data.get('name')
+        if name:
+            session.name = name
+            session.save()
+
+        serializer = SessionSerializer(session)
+        return Response(serializer.data)
+
+    @swagger_auto_schema(
+        manual_parameters=[token_param],
+        responses={
+            200: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'message': openapi.Schema(type=openapi.TYPE_STRING),
+                    'session_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                }
+            ),
+            403: 'Forbidden',
+            404: 'Not Found'
+        }
+    )
+    def delete(self, request, id):
+        """
+        Delete a session.
+        Requires authentication and session ownership.
+        Returns a success message with the deleted session ID.
+        """
+        session = get_object_or_404(Session, id=id)
+        
+        # Check if user is part of the session
+        if request.user != session.user1 and request.user != session.user2:
+            return Response({'error': 'Not authorized'}, status=403)
+
+        session_id = session.id
+        session.delete()
+        return Response({
+            'message': 'Session deleted successfully',
+            'session_id': session_id
+        }, status=status.HTTP_200_OK)
+
+class SessionParticipantsView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    @swagger_auto_schema(
+        manual_parameters=[token_param],
+        responses={200: UserSerializer(many=True), 403: 'Forbidden', 404: 'Not Found'}
+    )
+    def get(self, request, id):
+        """
+        Get session participants.
+        Requires authentication and session membership.
+        """
+        session = get_object_or_404(Session, id=id)
+        
+        # Check if user is part of the session
+        if request.user != session.user1 and request.user != session.user2:
+            return Response({'error': 'Not authorized'}, status=403)
+
+        # Get both participants
+        participants = [session.user1, session.user2]
+        serializer = UserSerializer(participants, many=True)
+        return Response(serializer.data)

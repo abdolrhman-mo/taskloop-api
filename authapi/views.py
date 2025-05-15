@@ -2,12 +2,13 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.exceptions import ValidationError
 from django.contrib.auth import authenticate
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from django.contrib.auth.models import User
+from rest_framework import serializers
 
 # Define the request body schema for Register and Login
 login_request_body = openapi.Schema(
@@ -34,6 +35,50 @@ token_param = openapi.Parameter(
     description="Token auth: Token <your_token>",
     type=openapi.TYPE_STRING
 )
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'first_name', 'last_name']
+        read_only_fields = ['id', 'username']  # These fields cannot be updated
+
+class UserProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        manual_parameters=[token_param],
+        responses={
+            200: UserProfileSerializer,
+            401: 'Unauthorized'
+        }
+    )
+    def get(self, request):
+        """
+        Get the current user's profile information.
+        Requires authentication.
+        """
+        serializer = UserProfileSerializer(request.user)
+        return Response(serializer.data)
+
+    @swagger_auto_schema(
+        manual_parameters=[token_param],
+        request_body=UserProfileSerializer,
+        responses={
+            200: UserProfileSerializer,
+            400: 'Bad Request',
+            401: 'Unauthorized'
+        }
+    )
+    def put(self, request):
+        """
+        Update the current user's profile information.
+        Requires authentication.
+        """
+        serializer = UserProfileSerializer(request.user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class RegisterView(APIView):
     permission_classes = [AllowAny]

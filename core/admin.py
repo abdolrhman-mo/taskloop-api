@@ -3,9 +3,13 @@ from .models import Session, Task
 
 @admin.register(Session)
 class SessionAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user1', 'user2', 'created_at')
+    list_display = ('id', 'uuid', 'name', 'creator', 'get_participants', 'created_at')
     list_filter = ('created_at',)
-    search_fields = ('id', 'user1__username', 'user2__username')
+    search_fields = ('id', 'participants__username')
+
+    def get_participants(self, obj):
+        return ", ".join([user.username for user in obj.participants.all()])
+    get_participants.short_description = 'Participants'
 
 @admin.register(Task)
 class TaskAdmin(admin.ModelAdmin):

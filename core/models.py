@@ -10,8 +10,8 @@ class Session(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     name = models.CharField(max_length=100, blank=False, null=False, default="Session")
     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_sessions')
-    user1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sessions_user1')
-    user2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sessions_user2')
+    # user1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sessions_user1')
+    # user2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sessions_user2')
     participants = models.ManyToManyField(User, related_name='sessions_participant')
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -25,13 +25,11 @@ class Session(models.Model):
 
     def save(self, *args, **kwargs):
         is_new = self.pk is None
-        if is_new:
-            self.creator = self.user1
         super().save(*args, **kwargs)
         
         # If this is a new session, add user1 and user2 to participants
         if is_new:
-            self.participants.add(self.user2)
+            self.participants.add(self.creator)
 
 class Task(models.Model):
     id = models.AutoField(primary_key=True)

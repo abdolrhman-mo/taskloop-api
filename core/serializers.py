@@ -7,21 +7,30 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'username', 'first_name', 'last_name', 'email']
 
+class ParticipantSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username']
+
 class SessionSerializer(serializers.ModelSerializer):
-    user1_username = serializers.SerializerMethodField()
-    user2_username = serializers.SerializerMethodField()
+    creator_username = serializers.SerializerMethodField()
+    participants_count = serializers.SerializerMethodField()
+    participants = ParticipantSerializer(source='participants.all', many=True, read_only=True)
 
     class Meta:
         model = Session
-        fields = ['id', 'name', 'user1', 'user2', 'user1_username', 'user2_username', 'created_at']
+        fields = ['id', 'uuid', 'name', 'creator', 'creator_username', 'participants', 'participants_count', 'created_at']
 
-    def get_user1_username(self, obj):
-        return obj.user1.username
+    def get_creator_username(self, obj):
+        return obj.creator.username if obj.creator else None
 
-    def get_user2_username(self, obj):
-        return obj.user2.username
+    def get_participants_count(self, obj):
+        return obj.participants.count()
 
 class TaskSerializer(serializers.ModelSerializer):
+    session_uuid = serializers.UUIDField(source='session.uuid', read_only=True)
+    creator_username = serializers.CharField(source='user.username', read_only=True)
+
     class Meta:
         model = Task
-        fields = ['id', 'session', 'user', 'text', 'is_done', 'created_at', 'updated_at']
+        fields = ['id', 'session', 'session_uuid', 'user', 'creator_username', 'text', 'is_done', 'created_at', 'updated_at']

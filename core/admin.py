@@ -3,7 +3,7 @@ from .models import Session, Task
 
 @admin.register(Session)
 class SessionAdmin(admin.ModelAdmin):
-    list_display = ('id', 'uuid', 'creator', 'get_participants', 'created_at')
+    list_display = ('id', 'uuid', 'name', 'creator', 'get_participants', 'created_at')
     list_filter = ('created_at',)
     search_fields = ('id', 'participants__username')
 

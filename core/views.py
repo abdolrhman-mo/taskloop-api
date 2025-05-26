@@ -48,8 +48,9 @@ class CreateSessionView(APIView):
         ),
         responses={201: session_response_schema, 400: 'Bad Request'}
     )
+
     def post(self, request):
-        user1 = request.user
+        user1 = request.user # user sending the request using the token
         user2_id = request.data.get('user2_id')
         name = request.data.get('name')
 

@@ -19,7 +19,7 @@ class SessionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Session
-        fields = ['id', 'uuid', 'name', 'creator', 'creator_username', 'participants', 'participants_count', 'created_at']
+        fields = ['id', 'uuid', 'name', 'creator', 'creator_username', 'participants', 'participants_count', 'created_at', 'notes', 'theme_color']
 
     def get_creator_username(self, obj):
         return obj.creator.username if obj.creator else None

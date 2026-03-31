@@ -295,7 +295,18 @@ class SessionManagementView(APIView):
                 if not name.strip():
                     return Response({'error': 'Session name cannot be empty'}, status=400)
                 session.name = name
-                session.save()
+
+            # Update notes if provided
+            notes = request.data.get('notes')
+            if notes is not None:
+                session.notes = notes
+
+            # Update theme color if provided
+            theme_color = request.data.get('theme_color')
+            if theme_color is not None:
+                session.theme_color = theme_color
+
+            session.save()
 
             serializer = SessionSerializer(session)
             return Response(serializer.data)

@@ -14,6 +14,8 @@ class Session(models.Model):
     # user2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sessions_user2')
     participants = models.ManyToManyField(User, related_name='sessions_participant')
     created_at = models.DateTimeField(auto_now_add=True)
+    notes = models.TextField(blank=True, default='')
+    theme_color = models.CharField(max_length=20, blank=True, default='')
 
     def __str__(self):
         creator_name = self.creator.username if self.creator else "No creator"
